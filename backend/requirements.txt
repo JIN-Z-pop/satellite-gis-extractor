@@ -1,0 +1,19 @@
+# Satellite GIS Extractor - Python Dependencies
+
+# Web Framework
+flask>=2.0.0
+flask-cors>=3.0.0
+
+# Google Earth Engine
+earthengine-api>=0.1.300
+
+# GIS Processing
+geopandas>=0.12.0
+shapely>=2.0.0
+
+# Data Processing
+pandas>=1.5.0
+numpy>=1.21.0
+
+# Environment Variables
+python-dotenv>=1.0.0

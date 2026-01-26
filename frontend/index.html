@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite GIS Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f3460;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #e94560;
+            white-space: nowrap;
+        }
+
+        .header h1 span {
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .settings-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .settings-btn.configured {
+            border-color: #00b894;
+        }
+
+        .settings-btn .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e94560;
+        }
+
+        .settings-btn.configured .status-dot {
+            background: #00b894;
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .settings-modal.visible {
+            display: flex;
+        }
+
+        .settings-panel {
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .settings-panel h2 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-panel p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .settings-panel label {
+            display: block;
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 12px 40px 12px 14px;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: monospace;
+        }
+
+        .settings-input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        .settings-input::placeholder {
+            color: #555;
+        }
+
+        .input-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .input-toggle:hover {
+            color: #aaa;
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .settings-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .settings-actions button:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #e94560 0%, #c73659 100%);
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .settings-help {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #0f3460;
+            text-align: center;
+        }
+
+        .settings-help a {
+            color: #e94560;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .settings-help a:hover {
+            text-decoration: underline;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #16213e;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #0f3460;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h3 {
+            font-size: 0.9rem;
+            color: #e94560;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .class-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .class-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .class-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .class-item input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .class-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .class-name {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .format-options {
+            display: flex;
+            gap: 15px;
+        }
+
+        .format-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .format-option input {
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560 0%, #c73659 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #00b894 0%, #00a185 100%);
+            color: #fff;
+            text-decoration: none;
+            text-align: center;
+            display: none;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.4);
+        }
+
+        #status {
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 20px;
+        }
+
+        #statistics {
+            display: none;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        #statistics h3 {
+            margin-bottom: 10px;
+        }
+
+        #statistics table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        #statistics th, #statistics td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #statistics th {
+            color: #e94560;
+        }
+
+        /* Floating Statistics Panel */
+        .statistics-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            min-width: 320px;
+            max-width: 380px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            color: #333;
+        }
+
+        .statistics-panel.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .stats-header {
+            background: linear-gradient(135deg, #00b894 0%, #00a185 100%);
+            color: white;
+            padding: 14px 18px;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+        }
+
+        .stats-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stats-control-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .stats-control-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .stats-content {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .statistics-panel.minimized .stats-content {
+            display: none;
+        }
+
+        .stats-summary {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stats-summary-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .stats-summary-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3436;
+        }
+
+        .stats-summary-sub {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .stat-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 5px solid;
+        }
+
+        .stat-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stat-item-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #2d3436;
+        }
+
+        .stat-item-percentage {
+            background: #e94560;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stat-item-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-detail {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .stat-detail strong {
+            color: #2d3436;
+        }
+
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .github-link {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .github-link:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🛰️ Satellite GIS <span>Extractor</span></h1>
+        <div class="header-right">
+            <button id="settings-btn" class="settings-btn" onclick="openSettings()">
+                <span class="status-dot"></span>
+                <span>⚙️ Settings</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal" onclick="closeSettingsOnBackdrop(event)">
+        <div class="settings-panel" onclick="event.stopPropagation()">
+            <h2>⚙️ API Settings</h2>
+            <p>Enter your Google Maps API key to enable map drawing tools. The key is stored securely in your browser.</p>
+
+            <label>Google Maps API Key</label>
+            <div class="input-wrapper">
+                <input type="password" id="api-key-input" class="settings-input" placeholder="AIzaSy...">
+                <button class="input-toggle" onclick="toggleApiKeyVisibility()" title="Show/Hide">👁</button>
+            </div>
+
+            <div class="settings-actions">
+                <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+                <button class="btn-save" onclick="saveSettings()">Save & Apply</button>
+            </div>
+
+            <div class="settings-help">
+                <a href="https://console.cloud.google.com/google/maps-apis" target="_blank">
+                    🔑 Get API Key from Google Cloud Console →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="section">
+                <h3>Land Cover Classes</h3>
+                <div class="class-list">
+                    <label class="class-item">
+                        <input type="checkbox" class="class-checkbox" value="forest" checked>
+                        <span class="class-color" style="background: #006400"></span>
+                        <span class="class-name">Forest</span>
+                    </label>
+                    <label class="class-item">
+                        <input type="checkbox" class="class-checkbox" value="agriculture" checked>
+                        <span class="class-color" style="background: #ffb432"></span>
+                        <span class="class-name">Agriculture</span>
+                    </label>
+                    <label class="class-item">
+                        <input type="checkbox" class="class-checkbox" value="water" checked>
+                        <span class="class-color" style="background: #0064c8"></span>
+                        <span class="class-name">Water</span>
+                    </label>
+                    <label class="class-item">
+                        <input type="checkbox" class="class-checkbox" value="urban" checked>
+                        <span class="class-color" style="background: #fa0000"></span>
+                        <span class="class-name">Urban</span>
+                    </label>
+                    <label class="class-item">
+                        <input type="checkbox" class="class-checkbox" value="grassland">
+                        <span class="class-color" style="background: #ffff00"></span>
+                        <span class="class-name">Grassland</span>
+                    </label>
+                    <label class="class-item">
+                        <input type="checkbox" class="class-checkbox" value="bare">
+                        <span class="class-color" style="background: #b4b4b4"></span>
+                        <span class="class-name">Bare Land</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Output Format</h3>
+                <div class="format-options">
+                    <label class="format-option">
+                        <input type="radio" name="format" value="geojson" checked>
+                        <span>GeoJSON</span>
+                    </label>
+                    <label class="format-option">
+                        <input type="radio" name="format" value="shapefile">
+                        <span>Shapefile</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section">
+                <button id="extract-btn" class="btn btn-primary" disabled>
+                    Extract Land Cover
+                </button>
+                <a id="download-btn" href="#" class="btn btn-download">
+                    Download
+                </a>
+                <button id="clear-btn" class="btn btn-secondary">
+                    Clear Selection
+                </button>
+            </div>
+
+            <div id="status">Draw an area on the map to begin.</div>
+
+            <div id="statistics"></div>
+        </aside>
+
+        <div class="map-container">
+            <div id="map"></div>
+            <!-- Floating Statistics Panel -->
+            <div id="statistics-panel" class="statistics-panel">
+                <div class="stats-header">
+                    <span>📊 Extraction Results</span>
+                    <div class="stats-controls">
+                        <button class="stats-control-btn" onclick="toggleStatsMinimize()" title="Minimize">
+                            −
+                        </button>
+                        <button class="stats-control-btn" onclick="closeStats()" title="Close">
+                            ×
+                        </button>
+                    </div>
+                </div>
+                <div class="stats-content" id="stats-content">
+                    <!-- Dynamically generated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Processing satellite data...</p>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
