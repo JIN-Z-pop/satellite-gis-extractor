@@ -4,6 +4,8 @@ A simple tool to extract land cover from satellite data and export to GIS format
 
 Uses ESA WorldCover 2021 (10m resolution).
 
+[![Windows 11](https://img.shields.io/badge/Tested%20on-Windows%2011-blue.svg)](https://www.microsoft.com/windows/windows-11)
+
 [日本語](README.md)
 
 ## Features
@@ -105,6 +107,10 @@ satellite-gis-extractor/
 ├── start.bat / start.sh
 └── README.md
 ```
+
+## Author
+
+**JIN-Z-pop and his merry AI brothers**
 
 ## License
 

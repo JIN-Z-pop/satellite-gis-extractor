@@ -4,6 +4,8 @@
 
 ESA WorldCover 2021（10m解像度）を使用。
 
+[![Windows 11](https://img.shields.io/badge/Tested%20on-Windows%2011-blue.svg)](https://www.microsoft.com/windows/windows-11)
+
 [English](README.en.md)
 
 ## 機能
@@ -105,6 +107,10 @@ satellite-gis-extractor/
 ├── start.bat / start.sh
 └── README.md
 ```
+
+## 作者
+
+**JIN-Z-pop and his merry AI brothers**
 
 ## ライセンス
 
