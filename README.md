@@ -4,7 +4,11 @@
 
 ESA WorldCover 2021（10m解像度）を使用。
 
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows 11](https://img.shields.io/badge/Tested%20on-Windows%2011-blue.svg)](https://www.microsoft.com/windows/windows-11)
+
+> **[Landing Page](https://jin-z-pop.github.io/satellite-gis-extractor/)** — プロジェクト概要をご覧ください。
 
 [English](README.en.md)
 
