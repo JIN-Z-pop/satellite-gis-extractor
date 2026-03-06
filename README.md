@@ -116,6 +116,12 @@ satellite-gis-extractor/
 
 **JIN-Z-pop and his merry AI brothers**
 
+## 免責事項 / Disclaimer
+
+本ツールは研究・教育目的で公開しています。内容の正確性・完全性・特定目的への適合性について一切保証せず、本ツールの利用により生じたいかなる損害についても責任を負いません。ご利用は利用者ご自身の責任において行ってください。
+
+This tool is provided for research and educational purposes only. The authors make no warranties regarding accuracy, completeness, or fitness for any particular purpose, and accept no liability for any loss or damage arising from its use. Use of this tool is entirely at your own risk.
+
 ## ライセンス
 
 MIT License
